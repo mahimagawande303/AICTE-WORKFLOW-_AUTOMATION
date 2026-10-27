@@ -106,22 +106,311 @@ async function pageDashboard() {
 }
 
 async function pageApplications() {
-  const qs = new URLSearchParams(Object.entries({ q: F.q, stage: F.stage, status: F.status }).filter(([, v]) => v)).toString();
-  const [rows, cfg] = await Promise.all([api("/applications?" + qs), api("/config")]);
-  const opt = (arr, cur) => `<option value="">All</option>` + arr.map(x => `<option ${x === cur ? "selected" : ""}>${x}</option>`).join("");
-  const body = rows.map(a => `<tr class="click" onclick="location.hash='#/applications/${a.id}'">
-    <td><b>${esc(a.app_code)}</b></td><td>${esc(a.institution_name)}</td><td>${esc(a.type)}</td><td>${esc(a.current_stage)}</td>
-    <td>${pill(a.status)}</td><td>${a.status === "In Progress" ? `${a.days_in_stage}/${a.sla_days} d` : "-"}</td>
-    <td>${a.status === "In Progress" ? pill(a.risk.level) + " " + a.risk.score : "-"}</td><td>${esc(a.submitted_on)}</td></tr>`).join("");
-  return `<div class="page-head"><div><h1>Applications</h1><div class="muted">Manage and track all applications (${rows.length} shown)</div></div>
-    <button data-act="newInstitutionApplication">+ New Application</button></div>
-  <div class="card"><div class="filters">
-    <input id="fq" placeholder="Search code or institution" value="${esc(F.q)}">
-    <select id="fstage">${opt(cfg.stages, F.stage)}</select>
-    <select id="fstatus">${opt(["In Progress", "Approved", "Rejected"], F.status)}</select>
-    <button data-act="applyFilters">Search</button></div>
-  <div class="table-wrap"><table><tr><th>ID</th><th>Institution</th><th>Type</th><th>Stage</th><th>Status</th><th>Days in stage</th><th>Risk</th><th>Submitted</th></tr>
-  ${body || '<tr><td colspan="8" class="muted">No applications found</td></tr>'}</table></div></div>`;
+  const qs = new URLSearchParams(
+    Object.entries({ q: F.q, stage: F.stage, status: F.status })
+      .filter(([, v]) => v)
+  ).toString();
+
+  const [rows, cfg] = await Promise.all([
+    api("/applications?" + qs),
+    api("/config")
+  ]);
+
+  const opt = (arr, cur) =>
+    `<option value="">All</option>` +
+    arr.map(x => `<option ${x === cur ? "selected" : ""}>${x}</option>`).join("");
+
+  const body = rows.map(a => `
+    <tr class="click" onclick="location.hash='#/applications/${a.id}'">
+      <td><b>${esc(a.app_code)}</b></td>
+      <td>${esc(a.institution_name)}</td>
+      <td>${esc(a.type)}</td>
+      <td>${esc(a.current_stage)}</td>
+      <td>${pill(a.status)}</td>
+      <td>${a.status === "In Progress" ? `${a.days_in_stage}/${a.sla_days} d` : "-"}</td>
+      <td>${a.status === "In Progress" ? pill(a.risk.level) + " " + a.risk.score : "-"}</td>
+      <td>${esc(a.submitted_on)}</td>
+    </tr>`).join("");
+
+  return `
+    <div class="page-head">
+      <div>
+        <h1>Applications</h1>
+        <div class="muted">Manage and track all applications (${rows.length} shown)</div>
+      </div>
+      ${isStaff()
+        ? '<button data-act="openNewApp">+ New Application</button>'
+        : '<button data-act="newInstitutionApplication">+ New Application</button>'}
+    </div>
+
+    <div class="card">
+      <div class="filters">
+        <input id="fq" placeholder="Search code or institution" value="${esc(F.q)}">
+        <select id="fstage">${opt(cfg.stages, F.stage)}</select>
+        <select id="fstatus">${opt(["In Progress", "Approved", "Rejected"], F.status)}</select>
+        <button data-act="applyFilters">Search</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <tr>
+            <th>ID</th><th>Institution</th><th>Type</th><th>Stage</th>
+            <th>Status</th><th>Days in stage</th><th>Risk</th><th>Submitted</th>
+          </tr>
+          ${body || '<tr><td colspan="8" class="muted">No applications found</td></tr>'}
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ---------- Institution application catalogue ---------- */
+
+const APPLICATION_INFO = {
+  "New Institution Approval": {
+    intro: "Apply to start a new technical institution.",
+    rules: [
+      "Provide complete and accurate information.",
+      "Prepare the required supporting documents.",
+      "The application is subject to official scrutiny."
+    ],
+    requirements: [
+      "Institution or society details",
+      "Proposed location and infrastructure",
+      "Authorized contact person details"
+    ],
+    deadline: "Demo deadline: 30 November 2026"
+  },
+
+  "Extension of Approval": {
+    intro: "Apply to continue approval for an existing institution or programme.",
+    rules: [
+      "Keep institutional information updated.",
+      "Prepare current compliance documents.",
+      "Approval depends on the applicable review process."
+    ],
+    requirements: [
+      "Existing approval details",
+      "Current faculty and infrastructure information",
+      "Compliance documents"
+    ],
+    deadline: "Demo deadline: 15 December 2026"
+  },
+
+  "Increase in Intake": {
+    intro: "Request approval to increase the intake of an existing programme.",
+    rules: [
+      "Mention the existing and proposed intake.",
+      "Prepare faculty and infrastructure information.",
+      "The request is subject to official scrutiny."
+    ],
+    requirements: [
+      "Programme details",
+      "Existing and proposed intake",
+      "Faculty and infrastructure evidence"
+    ],
+    deadline: "Demo deadline: 20 December 2026"
+  }
+};
+
+function appInfo(type, requiredDocs = []) {
+  const info = APPLICATION_INFO[type] || {
+    intro: `Start an application for ${type}. Review the required documents before proceeding.`,
+    rules: [
+      "Enter accurate information.",
+      "Prepare all required documents.",
+      "Follow the applicable review process."
+    ],
+    requirements: [
+      "Institution details",
+      "Authorized contact details",
+      "Supporting evidence"
+    ],
+    deadline: "Demo deadline: 31 December 2026"
+  };
+
+  return { ...info, documents: requiredDocs };
+}
+
+async function pageNewApplicationTypes() {
+  if (isStaff()) {
+    return `<div class="card">
+      <h2>Institution access only</h2>
+      <button data-act="backApplications">Back to Applications</button>
+    </div>`;
+  }
+
+  const cfg = await api("/config");
+  const types = Object.keys(cfg.required_docs || {});
+
+  const cards = types.map(type => {
+    const info = appInfo(type, cfg.required_docs[type] || []);
+
+    return `<div class="card application-type-card">
+      <div class="app-type-icon">▤</div>
+      <h2>${esc(type)}</h2>
+      <p class="muted">${esc(info.intro)}</p>
+      <p><b>Deadline:</b> ${esc(info.deadline.replace("Demo deadline: ", ""))}</p>
+      <button data-act="viewApplicationType" data-type="${esc(type)}">
+        View details →
+      </button>
+    </div>`;
+  }).join("");
+
+  return `<div class="page-head">
+      <div>
+        <h1>New Application</h1>
+        <div class="muted">Choose the application type you want to submit.</div>
+      </div>
+      <button class="ghost" data-act="backApplications">← Back to Applications</button>
+    </div>
+
+    <div class="application-type-grid">
+      ${cards || '<div class="card">No application types configured.</div>'}
+    </div>
+
+    <p class="muted small">
+      Deadlines are illustrative demo dates, not verified official AICTE deadlines.
+    </p>`;
+}
+
+async function pageNewApplicationDetail(type) {
+  if (isStaff()) {
+    return `<div class="card">
+      <h2>Institution access only</h2>
+      <button data-act="backApplications">Back to Applications</button>
+    </div>`;
+  }
+
+  const cfg = await api("/config");
+  const types = Object.keys(cfg.required_docs || {});
+
+  if (!types.includes(type)) {
+    return `<div class="card">
+      <h2>Application type not found</h2>
+      <button data-act="newInstitutionApplication">Back to application types</button>
+    </div>`;
+  }
+
+  const info = appInfo(type, cfg.required_docs[type] || []);
+  const list = items => items.length
+    ? items.map(x => `<li>${esc(x)}</li>`).join("")
+    : "<li>Check the applicable requirements with the responsible authority.</li>";
+
+  return `<div class="page-head">
+      <div>
+        <div class="muted small">
+          <a href="#/new-applications">New Application</a> / Details
+        </div>
+        <h1>${esc(type)}</h1>
+        <div class="muted">Review the details before starting.</div>
+      </div>
+      <button class="ghost" data-act="newInstitutionApplication">← All application types</button>
+    </div>
+
+    <div class="card">
+      <h2>Introduction</h2>
+      <p>${esc(info.intro)}</p>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <h2>Rules and instructions</h2>
+        <ul>${list(info.rules)}</ul>
+      </div>
+      <div class="card">
+        <h2>Institutional requirements</h2>
+        <ul>${list(info.requirements)}</ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Required documents</h2>
+      <ul>${list(info.documents)}</ul>
+    </div>
+
+    <div class="card deadline-card">
+      <h2>Important date</h2>
+      <p><b>${esc(info.deadline)}</b></p>
+      <p class="muted small">Confirm the official deadline before submission.</p>
+    </div>
+
+    <div class="application-cta">
+      <div>
+        <h2>Ready to begin?</h2>
+        <p class="muted">Keep your supporting documents ready.</p>
+      </div>
+      <button data-act="fillApplication" data-type="${esc(type)}">
+        Fill Application →
+      </button>
+    </div>`;
+}
+
+async function pageFillApplication(type) {
+  if (isStaff()) {
+    return `<div class="card">
+      <h2>Institution access only</h2>
+      <button data-act="backApplications">Back to Applications</button>
+    </div>`;
+  }
+
+  const cfg = await api("/config");
+  const types = Object.keys(cfg.required_docs || {});
+
+  if (!types.includes(type)) {
+    return `<div class="card">
+      <h2>Application type not found</h2>
+      <button data-act="newInstitutionApplication">Back to application types</button>
+    </div>`;
+  }
+
+  const info = appInfo(type, cfg.required_docs[type] || []);
+
+  return `<div class="page-head">
+      <div>
+        <h1>Fill Application</h1>
+        <div class="muted">${esc(type)}</div>
+      </div>
+    </div>
+
+    <form id="institutionApplicationForm" class="card application-form" onsubmit="return false">
+      <h2>Institution details</h2>
+
+      <label for="institutionName">Institution name</label>
+      <input id="institutionName" required placeholder="Enter institution name">
+
+      <label for="contactName">Authorized contact person</label>
+      <input id="contactName" required placeholder="Enter contact person name">
+
+      <label for="contactEmail">Contact email</label>
+      <input id="contactEmail" type="email" required placeholder="name@example.com">
+
+      <label for="institutionAddress">Institution address</label>
+      <textarea id="institutionAddress" required rows="3" placeholder="Enter full address"></textarea>
+
+      <h2>Document checklist</h2>
+      <p class="muted small">This checklist does not upload files.</p>
+
+      <div class="document-checklist">
+        ${info.documents.map(d => `
+          <label class="check-row">
+            <input type="checkbox" name="preparedDoc" value="${esc(d)}">
+            <span>${esc(d)}</span>
+          </label>
+        `).join("") || '<p class="muted">No documents configured.</p>'}
+      </div>
+
+      <p class="prototype-note">
+        Demo: only the application type is sent to the current backend.
+        Other form fields and checklist selections are not saved.
+      </p>
+
+      <div class="form-actions">
+        <button type="button" class="ghost"
+          data-act="viewApplicationType" data-type="${esc(type)}">Back</button>
+
+        <button type="button" data-act="submitInstitutionApplication"
+          data-type="${esc(type)}">Create Application</button>
+      </div>
+    </form>`;
 }
 
 function docActions(d) {
@@ -221,9 +510,30 @@ async function render() {
   const page = parts[0] || "dashboard";
   try {
     let html;
-    if (page === "applications" && parts[1]) html = await pageDetail(parts[1]);
-    else html = await ({ dashboard: pageDashboard, applications: pageApplications, compliance: pageCompliance, alerts: pageAlerts,
-      institutions: pageInstitutions, audit: pageAudit, config: pageConfig }[page] || pageDashboard)();
+    if (page === "applications" && parts[1]) {
+      html = await pageDetail(parts[1]);
+    } else if (page === "new-applications" && parts[1] === "type" && parts[2]) {
+      html = await pageNewApplicationDetail(
+        decodeURIComponent(parts.slice(2).join("/"))
+      );
+    } else if (page === "new-applications" && parts[1] === "fill" && parts[2]) {
+      html = await pageFillApplication(
+        decodeURIComponent(parts.slice(2).join("/"))
+      );
+    } else if (page === "new-applications") {
+      html = await pageNewApplicationTypes();
+    } else {
+      html = await ({
+        dashboard: pageDashboard,
+        applications: pageApplications,
+        compliance: pageCompliance,
+        alerts: pageAlerts,
+        institutions: pageInstitutions,
+        audit: pageAudit,
+        config: pageConfig
+      }[page] || pageDashboard)();
+    }
+
     root.innerHTML = layout(page, html);
   } catch (e) {
     if (token) { root.innerHTML = layout(page, `<div class="card"><h2>Something went wrong</h2><p>${esc(e.message)}</p></div>`); }
@@ -245,7 +555,10 @@ document.addEventListener("click", async e => {
     } else if (act === "logout") logout();
     else if (act === "applyFilters") { F.q = fq.value; F.stage = fstage.value; F.status = fstatus.value; await render(); }
     else if (act === "applyDocFilter") { F.docStatus = fdoc.value; await render(); }
-    else if (act === "openNewApp") await openNewApp();
+    else if (act === "newInstitutionApplication") {
+  location.hash = isStaff() ? "#/applications" : "#/new-applications";
+  await render();
+}
     else if (act === "closeDialog") document.getElementById("newAppDialog").close();
     else if (act === "createApp") {
       const body = { type: naType.value }; if (isStaff()) body.institution_id = Number(naInst.value);
