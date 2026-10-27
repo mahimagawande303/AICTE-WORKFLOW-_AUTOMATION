@@ -54,8 +54,8 @@ function bars(obj) {
 function loginView() {
   return `<div class="login-wrap"><div class="login-card">
     <h1>AICTE Workflow Hub</h1><p class="muted">Approval · Compliance · Monitoring (hackathon prototype)</p>
-    <input id="email" placeholder="Email" value="admin@demo.com">
-    <input id="password" type="password" placeholder="Password" value="demo123">
+    <input id="email" placeholder="Email" >
+    <input id="password" type="password" placeholder="Password" >
     <button class="full" data-act="login">Login</button>
     <div class="demo-btns small muted">Demo accounts (password demo123):
      <div> <button class="ghost sm" data-act="fill" data-email="official1@demo.com">Official</button>
@@ -89,7 +89,12 @@ async function pageDashboard() {
   const risk = d.top_risk.map(a => `<tr class="click" onclick="location.hash='#/applications/${a.id}'">
     <td>${esc(a.app_code)}</td><td>${esc(a.institution_name)}</td><td>${esc(a.days_in_stage ?? "-")}</td>
     <td>${(a.submitted_at ? new Date(a.submitted_date).toISOString().slice(0, 10) : "-")} </td></tr>`).join("");
-  return `<div class="page-head"><div><h1>Dashboard</h1><div class="muted">Overview of applications, deadlines and risk</div></div></div>
+return `<div class="page-head"><div>
+    <h1> Namaste 🙏, ${esc(user.name || "User")}!</h1>
+    <div class="muted">
+      Welcome to your ${user.role === "institution" ? "Institution" : "Official"} Dashboard.
+    </div>
+  </div></div>
   <div class="grid g4">${kpi(d.total, "Total applications")}${kpi(d.in_progress, "In progress")}
     ${kpi(d.overdue, "Overdue (past stage limit)", "red")}${kpi(d.expiring_docs, "Documents expiring ≤30 days", "amber")}
     ${kpi(d.open_alerts, "Open alerts", "red")}</div>
