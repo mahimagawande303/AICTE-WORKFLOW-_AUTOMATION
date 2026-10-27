@@ -8,7 +8,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const isStaff = () => user && user.role !== "institution";
 
 async function api(path, method = "GET", body) {
-  const res = await fetch("/api" + path, {
+  const res = await fetch(`http://127.0.0.1:5000/api${path}`, {
     method,
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
     body: body ? JSON.stringify(body) : undefined,
@@ -58,16 +58,16 @@ function loginView() {
     <input id="password" type="password" placeholder="Password" value="demo123">
     <button class="full" data-act="login">Login</button>
     <div class="demo-btns small muted">Demo accounts (password demo123):
-      <button class="ghost sm" data-act="fill" data-email="admin@demo.com">Admin</button>
-      <button class="ghost sm" data-act="fill" data-email="official1@demo.com">Official</button>
-      <button class="ghost sm" data-act="fill" data-email="institution1@demo.com">Institution</button></div>
-  </div></div>`;
+     <div> <button class="ghost sm" data-act="fill" data-email="official1@demo.com">Official</button>
+      <button class="ghost sm" data-act="fill" data-email="institution1@demo.com">Institution</button>
+  </div>
+  </div>`;
 }
 
 /* ---------- layout ---------- */
 const NAV = [
   ["dashboard", "Dashboard"], ["applications", "Applications"], ["compliance", "Compliance & Documents"],
-  ["alerts", "Alerts"], ["institutions", "Institutions", true], ["audit", "Audit Log", true], ["config", "Workflow Rules", true],
+  ["alerts", "Alerts"], ["institutions", "Institutions", true], ["audit", "Audit trail", true], ["config", "Workflow Rules", true],
 ];
 function layout(active, html) {
   const links = NAV.filter(n => !n[2] || isStaff())
@@ -87,19 +87,22 @@ async function pageDashboard() {
   const d = await api("/dashboard");
   const kpi = (n, l, c = "") => `<div class="card kpi ${c}"><div class="muted">${l}</div><div class="num">${n}</div></div>`;
   const risk = d.top_risk.map(a => `<tr class="click" onclick="location.hash='#/applications/${a.id}'">
-    <td>${esc(a.app_code)}</td><td>${esc(a.institution_name)}</td><td>${esc(a.current_stage)}</td>
-    <td>${pill(a.risk.level)} ${a.risk.score}</td></tr>`).join("");
+    <td>${esc(a.app_code)}</td><td>${esc(a.institution_name)}</td><td>${esc(a.days_in_stage ?? "-")}</td>
+    <td>${(a.submitted_at ? new Date(a.submitted_date).toISOString().slice(0, 10) : "-")} </td></tr>`).join("");
   return `<div class="page-head"><div><h1>Dashboard</h1><div class="muted">Overview of applications, deadlines and risk</div></div></div>
   <div class="grid g4">${kpi(d.total, "Total applications")}${kpi(d.in_progress, "In progress")}
     ${kpi(d.overdue, "Overdue (past stage limit)", "red")}${kpi(d.expiring_docs, "Documents expiring ≤30 days", "amber")}
     ${kpi(d.open_alerts, "Open alerts", "red")}</div>
   <div class="grid g2">
-    <div class="card"><h2>Application status</h2>${donut([
-      { label: "In Progress", value: d.in_progress, color: "#1f6feb" }, { label: "Approved", value: d.approved, color: "#16a34a" },
-      { label: "Rejected", value: d.rejected, color: "#dc2626" }])}</div>
-    <div class="card"><h2>Stage-wise pending</h2>${bars(d.stage_counts)}</div></div>
+    <div class="card" id="applicationstatuscard" style="cursor:pointer;" onclick="document.getElementById('stagependingcard').classList.toggle('show-stage-pending')">
+      <h2>Application status</h2>${donut([
+        { label: "In Progress", value: d.in_progress, color: "#1f6feb" }, 
+        { label: "Approved", value: d.approved, color: "#16a34a" },
+        { label: "Rejected", value: d.rejected, color: "#dc2626" }])}
+        </div>
+    <div class="card stage-pending-card" id="stagependingcard"><h2>Stage-wise pending</h2>${bars(d.stage_counts)}</div></div>
   <div class="card"><h2>Highest-risk applications <span class="muted small">(rule-based score, see Application Details for reasons)</span></h2>
-    <div class="table-wrap"><table><tr><th>Application</th><th>Institution</th><th>Stage</th><th>Risk</th></tr>${risk || '<tr><td colspan="4" class="muted">No active applications</td></tr>'}</table></div></div>`;
+    <div class="table-wrap"><table><tr><th>Application</th><th>Institution</th><th>days_in_stage</th><th>submitted_date</th></tr>${risk || '<tr><td colspan="4" class="muted">No active applications</td></tr>'}</table></div></div>`;
 }
 
 async function pageApplications() {
@@ -111,7 +114,7 @@ async function pageApplications() {
     <td>${pill(a.status)}</td><td>${a.status === "In Progress" ? `${a.days_in_stage}/${a.sla_days} d` : "-"}</td>
     <td>${a.status === "In Progress" ? pill(a.risk.level) + " " + a.risk.score : "-"}</td><td>${esc(a.submitted_on)}</td></tr>`).join("");
   return `<div class="page-head"><div><h1>Applications</h1><div class="muted">Manage and track all applications (${rows.length} shown)</div></div>
-    <button data-act="openNewApp">+ New Application</button></div>
+    <button data-act="newInstitutionApplication">+ New Application</button></div>
   <div class="card"><div class="filters">
     <input id="fq" placeholder="Search code or institution" value="${esc(F.q)}">
     <select id="fstage">${opt(cfg.stages, F.stage)}</select>

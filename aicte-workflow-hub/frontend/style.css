@@ -11,13 +11,13 @@ h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 0 0 12px;
 
 /* layout */
 .layout { display: flex; min-height: 100vh; }
-.sidebar { width: 230px; background: linear-gradient(180deg, var(--navy), var(--navy-2)); color: #fff; padding: 16px 10px; flex-shrink: 0; }
+.sidebar { height:100vh;width: 230px; background: linear-gradient(180deg, var(--navy), var(--navy-2)); color: #fff; padding: 16px 10px; flex-shrink: 0;position:fixed;top:0;left:0;width:250px;z-index:100;}
 .brand { font-weight: 700; font-size: 16px; padding: 4px 10px 16px; }
 .nav a { display: block; color: #cbd5f5; text-decoration: none; padding: 10px 12px; border-radius: 8px; margin-bottom: 2px; }
 .nav a:hover { background: rgba(255,255,255,.1); } .nav a.active { background: rgba(255,255,255,.2); color: #fff; font-weight: 600; }
 .main { flex: 1; min-width: 0; }
 .topbar { background: #fff; border-bottom: 1px solid var(--line); padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; }
-.content { padding: 24px; }
+.content { padding: 20px;margin-left:250px; }
 .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
 
 /* cards & grids */
@@ -25,7 +25,12 @@ h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 0 0 12px;
 .grid { display: grid; gap: 16px; } .g4 { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .g2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 .kpi .num { font-size: 30px; font-weight: 700; } .kpi.red .num { color: var(--red); } .kpi.amber .num { color: var(--amber); }
-
+.stage-pending-card{
+  display:none;
+}
+.stage-pending-card.show-stage-pending{
+  display:block;
+}
 /* table */
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
@@ -41,7 +46,7 @@ button, .btn { background: var(--blue); color: #fff; border: 0; border-radius: 8
 button:hover { filter: brightness(.95); } button.ghost { background: #fff; color: var(--blue); border: 1px solid var(--blue); }
 button.sm { padding: 4px 10px; font-size: 12px; } button.danger { background: var(--red); }
 input, select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; background: #fff; }
-.filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.filters { display: flex; gap: 10px; flex-wrap:nowrap; margin-bottom: 12px;align-items:center;flex-direction:row;justify-content:flex-start;}
 a { color: var(--blue); }
 
 /* bars, stepper, risk */
