@@ -1,6 +1,16 @@
 /* AICTE Workflow Hub - frontend (plain JavaScript, no framework, no build step). */
 let token = localStorage.getItem("token");
 let user = JSON.parse(localStorage.getItem("user") || "null");
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  token = null;
+  user = null;
+
+  location.hash = "#/home";
+  render();
+}
 const F = { q: "", stage: "", status: "", docStatus: "" };   // filter state
 let institutions = [];
 
@@ -48,6 +58,203 @@ function bars(obj) {
   const max = Math.max(1, ...Object.values(obj));
   return Object.entries(obj).map(([k, v]) =>
     `<div class="bar-row"><div class="label">${esc(k)}</div><div class="bar"><div class="fill" style="width:${(v / max) * 100}%"></div></div><div class="val">${v}</div></div>`).join("");
+}
+
+/* ---------- public home page ---------- */
+function pageHome() {
+  return `
+    <div class="home-page">
+      <header class="home-header">
+        <div class="home-brand">
+          <div class="home-brand-icon">A</div>
+          <div>
+            <h2>AICTE</h2>
+            <p>All India Council for Technical Education</p>
+          </div>
+        </div>
+
+        <nav class="home-nav">
+          <a href="#/home">Home</a>
+          <a href="#/about">About</a>
+          <a href="#/approval-process">Approval Process</a>
+          <a href="#/institutions">Institutions</a>
+          <a href="#/faqs">FAQs</a>
+          <a href="#/contact">Contact Us</a>
+        </nav>
+
+        <button data-act="showLogin" class="home-login-btn">
+          Login →
+        </button>
+      </header>
+
+      <section class="home-hero">
+        <div class="hero-content">
+          <p class="hero-label">AICTE APPROVAL MANAGEMENT SYSTEM</p>
+          <h1>Transparent. Efficient.<br>
+            <span>For a Stronger Technical Education.</span>
+          </h1>
+          <p class="hero-description">
+            The AICTE Approval Management System enables a streamlined,
+            transparent and digital process for managing institution
+            approvals, compliance and related workflows.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#/approval-process" class="hero-primary">
+              View Approval Process →
+            </a>
+            <button data-act="showLogin" class="hero-secondary">
+              Track Your Application →
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="home-features">
+        <a href="#/institutions" class="home-feature-card">
+          <div class="feature-icon purple">▤</div>
+          <h3>Institutions</h3>
+          <p>View information about approved institutions and their current status.</p>
+          <span>→</span>
+        </a>
+
+        <a href="#/approval-process" class="home-feature-card">
+          <div class="feature-icon green">✓</div>
+          <h3>Approval Process</h3>
+          <p>Understand the step-by-step process for institution approval.</p>
+          <span>→</span>
+        </a>
+
+        <a href="#/login" class="home-feature-card">
+          <div class="feature-icon orange">▤</div>
+          <h3>Compliance & Submissions</h3>
+          <p>Track compliance requirements, renewals and important deadlines.</p>
+          <span>→</span>
+        </a>
+
+        <a href="#/faqs" class="home-feature-card">
+          <div class="feature-icon cyan">?</div>
+          <h3>FAQs</h3>
+          <p>Find answers to common questions about approvals and regulations.</p>
+          <span>→</span>
+        </a>
+
+        <a href="#/contact" class="home-feature-card">
+          <div class="feature-icon pink">♧</div>
+          <h3>Help & Support</h3>
+          <p>Get assistance and guidance regarding the approval process.</p>
+          <span>→</span>
+        </a>
+      </section>
+
+      <section class="home-how">
+        <div class="how-left">
+          <h2>How It Works</h2>
+          <p>A simple and transparent process for institution approval.</p>
+
+          <div class="how-steps">
+            <div><span>▤</span><b>1. Submit Application</b>
+              <p>Institutions submit required documents and details.</p></div>
+            <div><span>⌕</span><b>2. Initial Scrutiny</b>
+              <p>Application is verified for completeness and compliance.</p></div>
+            <div><span>♙</span><b>3. Further Review</b>
+              <p>Detailed evaluation by relevant bureaus and committees.</p></div>
+            <div><span>✓</span><b>4. Approval Decision</b>
+              <p>Final decision is recorded and communicated.</p></div>
+            <div><span>🏛</span><b>5. Ongoing Compliance</b>
+              <p>Institutions meet ongoing compliance requirements.</p></div>
+          </div>
+        </div>
+
+        <div class="why-card">
+          <h3>🏛️ Why Choose AICTE?</h3>
+          <p>✓ End-to-end digital workflow</p>
+          <p>✓ Greater transparency and accountability</p>
+          <p>✓ Faster processing and real-time tracking</p>
+          <p>✓ Simplified compliance management</p>
+          <p>✓ Dedicated support and guidance</p>
+          <button data-act="showLogin">Get Started →</button>
+        </div>
+      </section>
+
+      <footer class="home-footer">
+        <div><b>AICTE</b><br>All India Council for Technical Education</div>
+        <div>Home　 |　 About Us　 |　 Approval Process　 |　 FAQs</div>
+        <div>© 2026 AICTE Workflow Hub. Hackathon prototype.</div>
+      </footer>
+    </div>
+  `;
+}
+function publicInfoPage(title, description, content) {
+  return `
+    <div class="public-info-page">
+      <h1>${title}</h1>
+      <p>${description}</p>
+      <div class="public-info-content">${content}</div>
+      <a href="#/home">← Back to Home</a>
+    </div>
+  `;
+}
+
+function pageAbout() {
+  return publicInfoPage(
+    "About AICTE Workflow Hub",
+    "A digital platform for transparent and efficient approval management.",
+    `<h3>Our Purpose</h3>
+     <p>To simplify approval workflows, application tracking,
+     compliance monitoring and communication between institutions
+     and authorised officials.</p>`
+  );
+}
+
+function pageApprovalProcess() {
+  return publicInfoPage(
+    "Approval Process",
+    "Understand the major stages of the approval workflow.",
+    `<ol>
+      <li>Application submission</li>
+      <li>Initial scrutiny</li>
+      <li>Re-scrutiny and document verification</li>
+      <li>Expert Visit Committee (EVC)</li>
+      <li>SAC/SHC review, where applicable</li>
+      <li>Final approval decision</li>
+      <li>Ongoing compliance monitoring</li>
+    </ol>`
+  );
+}
+
+function pagePublicInstitutions() {
+  return publicInfoPage(
+    "Institutions",
+    "Information and application services for technical institutions.",
+    `<p>Institutions can log in to submit applications,
+    upload documents and monitor their approval status.</p>
+     <a href="#/login">Institution Login →</a>`
+  );
+}
+
+function pageFAQs() {
+  return publicInfoPage(
+    "Frequently Asked Questions",
+    "Answers to common questions.",
+    `<h3>How can an institution submit an application?</h3>
+     <p>Log in using your institution account and select New Application.</p>
+     <h3>How can I track application status?</h3>
+     <p>Log in to your dashboard to view application progress.</p>
+     <h3>How can I check compliance deadlines?</h3>
+     <p>Use the Compliance & Documents section.</p>`
+  );
+}
+
+function pageContact() {
+  return publicInfoPage(
+    "Contact Us",
+    "Need assistance with the platform?",
+    `<p>Please contact your authorised regional AICTE office
+    for official approval-related queries.</p>
+     <p>For this prototype, contact details can be added here.</p>`
+  );
 }
 
 /* ---------- login ---------- */
@@ -508,25 +715,51 @@ async function pageConfig() {
 }
 
 /* ---------- router ---------- */
-async function render() {
+ async function render() {
   const root = document.getElementById("root");
-  if (!token) { root.innerHTML = loginView(); return; }
-  const parts = (location.hash || "#/dashboard").replace("#/", "").split("/");
-  const page = parts[0] || "dashboard";
+
+  const parts = (location.hash || "#/home")
+    .replace("#/", "")
+    .split("/");
+  const page = parts[0] || "home";
+
+  // Public home page and login page
+  if (page === "home" && !token) {
+    root.innerHTML = pageHome();
+    return;
+  }
+
+  if (page === "login" && !token) {
+    root.innerHTML = loginView();
+    return;
+  }
+
+  // If user is not logged in, show Home
+if (!token) {
+  const publicPages = {
+    home: pageHome,
+    login: loginView,
+    about: pageAbout,
+    "approval-process": pageApprovalProcess,
+    institutions: pagePublicInstitutions,
+    faqs: pageFAQs,
+    contact: pageContact
+  };
+
+  if (publicPages[page]) {
+    root.innerHTML = publicPages[page]();
+    return;
+  }
+
+  location.hash = "#/home";
+  root.innerHTML = pageHome();
+  return;
+} 
   try {
     let html;
+
     if (page === "applications" && parts[1]) {
       html = await pageDetail(parts[1]);
-    } else if (page === "new-applications" && parts[1] === "type" && parts[2]) {
-      html = await pageNewApplicationDetail(
-        decodeURIComponent(parts.slice(2).join("/"))
-      );
-    } else if (page === "new-applications" && parts[1] === "fill" && parts[2]) {
-      html = await pageFillApplication(
-        decodeURIComponent(parts.slice(2).join("/"))
-      );
-    } else if (page === "new-applications") {
-      html = await pageNewApplicationTypes();
     } else {
       html = await ({
         dashboard: pageDashboard,
@@ -540,19 +773,28 @@ async function render() {
     }
 
     root.innerHTML = layout(page, html);
+
   } catch (e) {
-    if (token) { root.innerHTML = layout(page, `<div class="card"><h2>Something went wrong</h2><p>${esc(e.message)}</p></div>`); }
+    if (token) {
+      root.innerHTML = layout(
+        page,
+        `<div class="card"><h2>Something went wrong</h2>
+        <p>${esc(e.message)}</p></div>`
+      );
+    }
   }
 }
-
-function logout() { token = null; user = null; localStorage.clear(); location.hash = ""; render(); }
 
 /* ---------- actions (event delegation) ---------- */
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-act]"); if (!b) return;
   const act = b.dataset.act;
   try {
-    if (act === "fill") document.getElementById("email").value = b.dataset.email;
+if (act === "showLogin") {
+  location.hash = "#/login";
+  await render();
+}
+else if (act === "fill")document.getElementById("email").value = b.dataset.email;
     else if (act === "login") {
       const r = await api("/login", "POST", { email: document.getElementById("email").value, password: document.getElementById("password").value });
       token = r.token; user = r.user; localStorage.setItem("token", token); localStorage.setItem("user", JSON.stringify(user));

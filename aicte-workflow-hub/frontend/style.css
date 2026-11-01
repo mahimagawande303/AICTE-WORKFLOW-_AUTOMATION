@@ -213,3 +213,309 @@ dialog select, dialog input { width: 100%; margin-bottom: 10px; }
     padding: 14px;
   }
 }
+
+/* ---------- PUBLIC HOME PAGE ---------- */
+
+.home-page {
+  background: #f3f8fc;
+  color: #12365c;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.home-header {
+  min-height: 82px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 3%;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.home-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-brand-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e7a52d;
+  color: #12365c;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.home-brand h2,
+.home-brand p {
+  margin: 0;
+}
+
+.home-brand p {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.home-nav {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.home-nav a {
+  color: #12365c;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.home-login-btn,
+.hero-primary {
+  background: #0b3b68;
+  color: white;
+  padding: 13px 25px;
+  border: none;
+  border-radius: 7px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.home-hero {
+  min-height: 350px;
+  padding: 55px 4%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  flex-wrap: wrap;
+  color: white;
+  background: linear-gradient(110deg, #073969, #0875cf 70%, #39a9dc);
+}
+
+.hero-content {
+  max-width: 650px;
+}
+
+.hero-label {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.hero-content h1 {
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.2;
+}
+
+.hero-content h1 span {
+  color: #55e0f0;
+}
+
+.hero-description {
+  max-width: 580px;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 25px;
+}
+
+.hero-primary {
+  background: #0877df;
+}
+
+.hero-secondary {
+  padding: 13px 22px;
+  border: 1px solid white;
+  border-radius: 7px;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+}
+
+
+.mission-icon {
+  font-size: 32px;
+}
+
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 18px;
+  padding: 30px 3.5%;
+}
+
+.home-feature-card {
+  background: white;
+  padding: 22px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #12365c;
+  box-shadow: 0 3px 15px #12365c10;
+}
+
+.home-feature-card p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.home-feature-card > span {
+  font-size: 22px;
+}
+
+.feature-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+.purple { background: #e9e7ff; color: #5544bd; }
+.green { background: #d8f5e9; color: #16865c; }
+.orange { background: #fff0d1; color: #d28a10; }
+.cyan { background: #d8f6f8; color: #168d9b; }
+.pink { background: #ffe4eb; color: #d64b70; }
+
+.home-how {
+  padding: 30px 3.5%;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+.how-steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.how-steps div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.how-steps span {
+  font-size: 28px;
+  color: #0877c9;
+}
+
+.how-steps b {
+  font-size: 13px;
+}
+
+.how-steps p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.why-card {
+  background: #e5f7f1;
+  border-radius: 12px;
+  padding: 25px;
+}
+
+.why-card p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.why-card button {
+  background: white;
+  border: 1px solid #0b3b68;
+  color: #0b3b68;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.home-footer {
+  background: #07345e;
+  color: white;
+  padding: 25px 3.5%;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .home-features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .home-how {
+    grid-template-columns: 1fr;
+  }
+
+  .how-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 550px) {
+  .home-features {
+    grid-template-columns: 1fr;
+  }
+
+  .home-nav {
+    gap: 12px;
+  }
+
+  .how-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+.public-info-page {
+  background: white;
+  padding: 45px;
+  margin: 30px auto;
+  max-width: 1100px;
+  border-radius: 12px;
+  box-shadow: 0 3px 15px #12365c15;
+  color: #12365c;
+  line-height: 1.8;
+}
+
+.public-info-page h1 {
+  color: #0877c9;
+}
+
+.public-info-page a {
+  color: #0877c9;
+  font-weight: bold;
+}
+
+.hero {
+    min-height: 350px;
+
+    background-image: url("/aicte-building.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    display: flex;
+    align-items: center;
+    padding: 50px;
+    color: white;
+}
+
+.hero-content {
+    max-width: 550px;
+}
