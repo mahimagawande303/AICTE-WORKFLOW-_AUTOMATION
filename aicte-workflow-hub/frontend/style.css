@@ -502,7 +502,7 @@ dialog select, dialog input { width: 100%; margin-bottom: 10px; }
   font-weight: bold;
 }
 
-.hero {
+.home-hero {
     min-height: 350px;
 
     background-image: url("/aicte-building.jpg");
